@@ -22,6 +22,8 @@ def criar_usuario(form: UsuarioSchema):
 
     Retorna uma representação dos usuários.
     """
+
+    #TODO: trocar por form.model_dump()
     try:
         usuario = Usuario(
             nome_usuario = form.nome_usuario,
@@ -31,7 +33,7 @@ def criar_usuario(form: UsuarioSchema):
 
         Session.add(usuario)
         Session.commit()
-
+        # TODO: trocar por UsuarioViewSchema...model_dump
         return apresenta_usuario(usuario), HTTPStatus.CREATED
     
     except IntegrityError:
