@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 
 from datetime import datetime
@@ -22,39 +22,36 @@ class ListagemUsuariosSchema(BaseModel):
     """
     usuarios: List[UsuarioSchema]
 
-def apresenta_usuario(usuario:Usuario):
-    """ Retorna uma representação do usuario seguindo o schema definido em
-        UsuarioViewSchema.
-    """
-    return {
-            "usuario_id": usuario.usuario_id,
-            "email": usuario.email,
-            "nome_usuario": usuario.nome_usuario,
-            "data_criacao": usuario.data_criacao
-        }
+# def apresenta_usuario(usuario:Usuario):
+#     """ Retorna uma representação do usuario seguindo o schema definido em
+#         UsuarioViewSchema.
+#     """
+#     return {
+#             "usuario_id": usuario.usuario_id,
+#             "email": usuario.email,
+#             "nome_usuario": usuario.nome_usuario,
+#             "data_criacao": usuario.data_criacao
+#         }
 
-def apresenta_usuarios(usuarios:List[Usuario]):
-    """ Retorna uma representação do usuario seguindo o schema definido em
-        UsuarioViewSchema.
-    """
-    result = []
-    for usuario in usuarios:
-        result.append({
-            "usuario_id": usuario.usuario_id,
-            "email": usuario.email,
-            "nome_usuario": usuario.nome_usuario,
-            "data_criacao": usuario.data_criacao
-        })
+# def apresenta_usuarios(usuarios:List[Usuario]):
+#     """ Retorna uma representação do usuario seguindo o schema definido em
+#         UsuarioViewSchema.
+#     """
+#     result = []
+#     for usuario in usuarios:
+#         result.append({
+#             "usuario_id": usuario.usuario_id,
+#             "email": usuario.email,
+#             "nome_usuario": usuario.nome_usuario,
+#             "data_criacao": usuario.data_criacao
+#         })
 
-    return {"usuarios": result}
+#     return {"usuarios": result}
 
 class UsuarioViewSchema(BaseModel):
     """Define como o usuario será retornado
     """
+    model_config = ConfigDict(from_attributes=True)
     email: str
     nome_usuario: str
     data_criacao: datetime
-
-
-# class UsuarioPath(BaseModel):
-#     restaurante_id: int = 1

@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from models import Session
 from models.usuario import Usuario
 from schemas.error import ErrorSchema
-from schemas.usuario import ListagemUsuariosSchema, UsuarioBuscaSchema, UsuarioSchema, UsuarioViewSchema, apresenta_usuario, apresenta_usuarios
+from schemas.usuario import ListagemUsuariosSchema, UsuarioBuscaSchema, UsuarioSchema, UsuarioViewSchema
 
 usuarios_bp = APIBlueprint(
     'usuarios',
@@ -22,9 +22,8 @@ def criar_usuario(form: UsuarioSchema):
 
     Retorna uma representação dos usuários.
     """
-
-    #TODO: trocar por form.model_dump()
     try:
+        #TODO: model_dump()
         usuario = Usuario(
             nome_usuario = form.nome_usuario,
             email = form.email,
@@ -33,8 +32,8 @@ def criar_usuario(form: UsuarioSchema):
 
         Session.add(usuario)
         Session.commit()
-        # TODO: trocar por UsuarioViewSchema...model_dump
-        return apresenta_usuario(usuario), HTTPStatus.CREATED
+    
+        return UsuarioViewSchema.model_validate(usuario).model_dump(), HTTPStatus.CREATED
     
     except IntegrityError:
         Session.rollback()
@@ -53,7 +52,6 @@ def listar_usuarios():
     """ Retorna uma lista de todos os usuários cadastrados
     """
     try:
-        # session = Session()
         usuarios = Session.query(Usuario).all()
 
         if not usuarios:
@@ -67,7 +65,7 @@ def listar_usuarios():
         return {
             "status": "success",
             "mensagem": f"{len(usuarios)} usuário(s) encontrado(s).",
-            "usuarios": apresenta_usuarios(usuarios)["usuarios"],
+            "usuarios": [UsuarioViewSchema.model_validate(usuario).model_dump() for usuario in usuarios],
             "quantidade": len(usuarios)
         }, HTTPStatus.OK
     
