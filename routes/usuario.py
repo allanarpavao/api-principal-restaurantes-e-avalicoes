@@ -16,7 +16,7 @@ usuarios_bp = APIBlueprint(
     abp_tags=[Tag(name='Usuários', description='Operações de usuário')]
 )
 
-@usuarios_bp.post('/criar', responses={"201": UsuarioViewSchema, "409": ErrorSchema, "400": ErrorSchema})
+@usuarios_bp.post('/criar', responses={"201": UsuarioViewSchema, "409": ErrorSchema, "400": ErrorSchema, "500": ErrorSchema})
 def criar_usuario(form: UsuarioSchema):
     """Adiciona um novo usuário à base de dados
 
@@ -38,15 +38,21 @@ def criar_usuario(form: UsuarioSchema):
     except IntegrityError:
         Session.rollback()
 
-        return {"erro": "Email já existe"}, HTTPStatus.CONFLICT
+        return ErrorSchema(
+            error_code="EMAIL_ALREADY_EXISTS",
+            message="Email já existe").model_dump(), HTTPStatus.CONFLICT
     
     except Exception as e:
         Session.rollback()
-        return {"erro": str(e)}, HTTPStatus.BAD_REQUEST
+        print(f"Erro interno detectado: {str(e)}")
+        return ErrorSchema(error_code="INTERNAL_SERVER_ERROR",
+                message="Ocorreu um erro interno ao processar a requisição."
+                ).model_dump(), HTTPStatus.INTERNAL_SERVER_ERROR
 
     finally:
         Session.remove()
 
+#TODO: melhorar try/except com ErrorSchema
 @usuarios_bp.get('/listar', responses={"200": ListagemUsuariosSchema})
 def listar_usuarios():
     """ Retorna uma lista de todos os usuários cadastrados
