@@ -16,6 +16,8 @@ __pycache__/
 # Banco de dados
 *.db
 *.sqlite
+*.sqlite3
+database/
 
 # Sistema
 .DS_Store
