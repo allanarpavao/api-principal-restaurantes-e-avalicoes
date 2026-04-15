@@ -32,18 +32,13 @@ def test_criar_usuario_com_dados_validos_retorna_201(mock_session, client):
     assert mock_session.add.called
     assert mock_session.commit.called
 
-# 2. Testando o Caminho Triste (Email Duplicado)
-# @patch("routes.usuarios.Session")
-# def test_criar_usuario_com_email_duplicado_retorna_409(mock_session, client):
-#     # Arrange: forçamos o banco a dar erro de integridade ao tentar fazer o commit
-#     mock_session.commit.side_effect = IntegrityError("Erro", "Detalhe", "Origem")
+@patch("routes.usuario.Session")
+def test_criar_usuario_com_email_duplicado_retorna_409(mock_session, client):
+    mock_session.commit.side_effect = IntegrityError("Erro", "Detalhe", "Origem")
     
-#     payload = {"nome_usuario": "Maria", "email": "maria@exemplo.com", "senha": "123"}
+    payload = {"nome_usuario": "Maria", "email": "maria@exemplo.com", "senha": "123"}
+    response = client.post("/usuarios/criar", json=payload)
 
-#     # Act
-#     response = client.post("/usuarios/criar", json=payload)
-
-#     # Assert
-#     assert response.status_code == HTTPStatus.CONFLICT
-#     assert mock_session.rollback.called # Crucial: Garante que o rollback foi feito
-#     assert response.json["error_code"] == "EMAIL_ALREADY_EXISTS"
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert mock_session.rollback.called
+    assert response.json["error_code"] == "EMAIL_ALREADY_EXISTS"
