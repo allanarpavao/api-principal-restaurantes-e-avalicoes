@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 
 from datetime import datetime
@@ -7,10 +7,10 @@ from models.usuario import Usuario
 class UsuarioSchema(BaseModel):
     """Define os campos de um novo usuário a ser inserido
     """
-    email: str = "fulanodesouza@gmail.com"
-    nome_usuario: str = "Fulano de Souza Rodrigues"
-    senha: str = "senha123"
-
+    nome_usuario: str = Field(..., json_schema_extra={"example": "João da Silva"})
+    email: str = Field(..., json_schema_extra={"example": "joao@exemplo.com"})
+    senha: str = Field(..., json_schema_extra={"example": "SenhaForte!123"})
+    
 
 class UsuarioBuscaSchema(BaseModel):
     """ Define como deve ser a estrutura que representa a busca.
