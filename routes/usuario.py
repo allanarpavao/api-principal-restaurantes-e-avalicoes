@@ -17,7 +17,7 @@ usuarios_bp = APIBlueprint(
 )
 
 @usuarios_bp.post('/criar', responses={"201": UsuarioViewSchema, "409": ErrorSchema, "400": ErrorSchema, "500": ErrorSchema})
-def criar_usuario(form: UsuarioSchema):
+def criar_usuario(body: UsuarioSchema):
     """Adiciona um novo usuário à base de dados
 
     Retorna uma representação dos usuários.
@@ -25,15 +25,15 @@ def criar_usuario(form: UsuarioSchema):
     try:
         #TODO: model_dump()
         usuario = Usuario(
-            nome_usuario = form.nome_usuario,
-            email = form.email,
-            senha = form.senha
+            nome_usuario = body.nome_usuario,
+            email = body.email,
+            senha = body.senha
         )
 
         Session.add(usuario)
         Session.commit()
     
-        return UsuarioViewSchema.model_validate(usuario).model_dump(), HTTPStatus.CREATED
+        return UsuarioViewSchema.model_validate(usuario).model_dump(mode='json'), HTTPStatus.CREATED
     
     except IntegrityError:
         Session.rollback()
