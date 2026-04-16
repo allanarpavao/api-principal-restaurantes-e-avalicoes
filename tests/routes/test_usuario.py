@@ -77,3 +77,14 @@ def test_criar_usuario_retorna_500(mock_db_session, client):
     assert response.json["error_code"] == "INTERNAL_SERVER_ERROR"
     mock_db_session.rollback.assert_called_once()
     mock_db_session.remove.assert_called_once()
+
+def test_criar_usuario_dados_invalidos_retorna_400(mock_db_session, client):
+
+    payload = {
+        "nome_usuario": "Usuário Incompleto"
+    }
+    response = client.post("/usuarios/criar", json=payload)
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    mock_db_session.add.assert_not_called()
+    mock_db_session.commit.assert_not_called()
