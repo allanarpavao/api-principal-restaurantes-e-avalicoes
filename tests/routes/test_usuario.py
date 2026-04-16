@@ -13,13 +13,18 @@ def client():
     with flask_app.test_client() as client:
         yield client
 
-@patch("routes.usuario.Session")
-def test_criar_usuario_com_dados_validos_retorna_201(mock_session, client):
-    def simular_banco_add(usuario_obj):
+@pytest.fixture
+def mock_db_session():
+    def simular_dados_automaticos_db(usuario_obj):
         usuario_obj.usuario_id = "123e4567-e89b-12d3-a456-426614174000"
         usuario_obj.data_criacao = "2026-04-14T00:00:00"
-        
-    mock_session.add.side_effect = simular_banco_add
+    
+    with patch("routes.usuario.Session") as mock_session:
+        mock_session.add.side_effect = simular_dados_automaticos_db
+        yield mock_session
+
+
+def test_criar_usuario_valido_retorna_201(mock_db_session, client):
     payload = {
         "nome_usuario": "João da Silva",
         "email": "joao@exemplo.com",
@@ -29,8 +34,15 @@ def test_criar_usuario_com_dados_validos_retorna_201(mock_session, client):
     response = client.post("/usuarios/criar", json=payload)
 
     assert response.status_code == HTTPStatus.CREATED
-    assert mock_session.add.called
-    assert mock_session.commit.called
+    mock_db_session.add.assert_called_once()
+    mock_db_session.commit.assert_called_once()
+
+
+
+
+
+
+
 
 @patch("routes.usuario.Session")
 def test_criar_usuario_com_email_duplicado_retorna_409(mock_session, client):
