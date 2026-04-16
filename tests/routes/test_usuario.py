@@ -1,9 +1,11 @@
+from pydantic import ValidationError
 import pytest
 from http import HTTPStatus
 from unittest.mock import patch
 from sqlalchemy.exc import IntegrityError
 
 from app import app as flask_app
+from schemas.usuario import UsuarioViewSchema
 
 ##  python -m pytest tests/routes/test_usuario.py -v
 
@@ -18,6 +20,7 @@ def mock_db_session():
     def simular_dados_automaticos_db(usuario_obj):
         usuario_obj.usuario_id = "123e4567-e89b-12d3-a456-426614174000"
         usuario_obj.data_criacao = "2026-04-14T00:00:00"
+        return usuario_obj
     
     with patch("routes.usuario.Session") as mock_session:
         mock_session.add.side_effect = simular_dados_automaticos_db
@@ -32,13 +35,23 @@ def test_criar_usuario_valido_retorna_201(mock_db_session, client):
     }
 
     response = client.post("/usuarios/criar", json=payload)
-
+    response_data = response.json
+    
     assert response.status_code == HTTPStatus.CREATED
     mock_db_session.add.assert_called_once()
     mock_db_session.commit.assert_called_once()
 
+    assert response_data["nome_usuario"] == payload["nome_usuario"]
+    assert response_data["email"] == payload["email"]
+    assert response_data["usuario_id"] == "123e4567-e89b-12d3-a456-426614174000"
+    assert "senha" not in response_data
 
+    try:
+        UsuarioViewSchema.model_validate(response_data)
+    except ValidationError as e:
+        pytest.fail(f"O payload de resposta não respeita o UsuarioViewSchema: {e}")
 
+  
 def test_criar_usuario_com_email_duplicado_retorna_409(mock_db_session, client):
     mock_db_session.commit.side_effect = IntegrityError("Erro", "Detalhe", "Origem")
     
