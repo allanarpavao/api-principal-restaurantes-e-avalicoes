@@ -45,7 +45,6 @@ def test_criar_usuario_valido_retorna_201(mock_db_session, client):
 
     assert response_data["nome_usuario"] == payload["nome_usuario"]
     assert response_data["email"] == payload["email"]
-    # assert response_data["usuario_id"] == "123e4567-e89b-12d3-a456-426614174000"
     assert "senha" not in response_data
 
     try:
@@ -64,3 +63,17 @@ def test_criar_usuario_com_email_duplicado_retorna_409(mock_db_session, client):
     assert response.status_code == HTTPStatus.CONFLICT
     mock_db_session.rollback.assert_called_once()
     assert response.json["error_code"] == "EMAIL_ALREADY_EXISTS"
+
+def test_criar_usuario_retorna_500(mock_db_session, client):
+    mock_db_session.commit.side_effect = Exception("Conexão com o banco perdida")
+    payload = {
+        "nome_usuario": "Carlos", 
+        "email": "carlos@exemplo.com", 
+        "senha": "123"
+    }
+    response = client.post("/usuarios/criar", json=payload)
+
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.json["error_code"] == "INTERNAL_SERVER_ERROR"
+    mock_db_session.rollback.assert_called_once()
+    mock_db_session.remove.assert_called_once()
