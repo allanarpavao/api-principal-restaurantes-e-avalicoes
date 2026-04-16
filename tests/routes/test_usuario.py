@@ -39,18 +39,12 @@ def test_criar_usuario_valido_retorna_201(mock_db_session, client):
 
 
 
-
-
-
-
-
-@patch("routes.usuario.Session")
-def test_criar_usuario_com_email_duplicado_retorna_409(mock_session, client):
-    mock_session.commit.side_effect = IntegrityError("Erro", "Detalhe", "Origem")
+def test_criar_usuario_com_email_duplicado_retorna_409(mock_db_session, client):
+    mock_db_session.commit.side_effect = IntegrityError("Erro", "Detalhe", "Origem")
     
     payload = {"nome_usuario": "Maria", "email": "maria@exemplo.com", "senha": "123"}
     response = client.post("/usuarios/criar", json=payload)
 
     assert response.status_code == HTTPStatus.CONFLICT
-    assert mock_session.rollback.called
+    mock_db_session.rollback.assert_called_once()
     assert response.json["error_code"] == "EMAIL_ALREADY_EXISTS"
