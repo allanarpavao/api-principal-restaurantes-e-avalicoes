@@ -16,7 +16,8 @@ usuarios_bp = APIBlueprint(
     abp_tags=[Tag(name='Usuários', description='Operações de usuário')]
 )
 
-@usuarios_bp.post('/criar', responses={"201": UsuarioViewSchema, "409": ErrorSchema, "400": ErrorSchema, "500": ErrorSchema})
+@usuarios_bp.post('/criar', responses={"201": UsuarioViewSchema, "409": ErrorSchema, "400": ErrorSchema,
+                                        "422": ErrorSchema, "500": ErrorSchema})
 def criar_usuario(body: UsuarioSchema):
     """Adiciona um novo usuário à base de dados
 

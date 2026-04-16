@@ -85,6 +85,6 @@ def test_criar_usuario_dados_invalidos_retorna_400(mock_db_session, client):
     }
     response = client.post("/usuarios/criar", json=payload)
 
-    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     mock_db_session.add.assert_not_called()
     mock_db_session.commit.assert_not_called()
