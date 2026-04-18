@@ -54,7 +54,7 @@ def criar_usuario(body: UsuarioSchema):
         Session.remove()
 
 #TODO: melhorar try/except com ErrorSchema
-@usuarios_bp.get('/listar', responses={"200": ListagemUsuariosSchema})
+@usuarios_bp.get('/listar', responses={"200": ListagemUsuariosSchema, "500": ErrorSchema})
 def listar_usuarios():
     """ Retorna uma lista de todos os usuários cadastrados
     """

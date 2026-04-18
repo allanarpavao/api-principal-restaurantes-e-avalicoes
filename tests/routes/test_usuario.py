@@ -78,13 +78,27 @@ def test_criar_usuario_retorna_500(mock_db_session, client):
     mock_db_session.rollback.assert_called_once()
     mock_db_session.remove.assert_called_once()
 
-def test_criar_usuario_dados_invalidos_retorna_400(mock_db_session, client):
+def test_criar_usuario_dados_invalidos_retorna_422(mock_db_session, client):
 
     payload = {
-        "nome_usuario": "Usuário Incompleto"
+        "nome_usuario": "Maria"
     }
     response = client.post("/usuarios/criar", json=payload)
 
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     mock_db_session.add.assert_not_called()
     mock_db_session.commit.assert_not_called()
+
+
+def test_listar_usuarios_retorna_500(mock_db_session, client):
+    mock_db_session.query.side_effect = Exception("Conexão com o banco perdida")
+    # payload = {
+    #     "nome_usuario": "Carlos", 
+    #     "email": "carlos@exemplo.com", 
+    #     "senha": "123"
+    # }
+    response = client.get("/usuarios/listar")
+
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.json["error_code"] == "INTERNAL_SERVER_ERROR"
+    mock_db_session.remove.assert_called_once()
