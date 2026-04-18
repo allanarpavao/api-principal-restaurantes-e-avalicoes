@@ -1,12 +1,14 @@
+import pytest
 from pydantic import ValidationError
 from datetime import datetime
-import pytest
+from types import SimpleNamespace
 from http import HTTPStatus
 from unittest.mock import patch
 from sqlalchemy.exc import IntegrityError
 
 from app import app as flask_app
 from schemas.usuario import UsuarioViewSchema
+
 
 ##  python -m pytest tests/routes/test_usuario.py -v
 
@@ -27,6 +29,23 @@ def mock_db_session():
     with patch("routes.usuario.Session") as mock_session:
         mock_session.add.side_effect = simular_dados_automaticos_db
         yield mock_session
+
+
+@pytest.fixture
+def gerar_usuarios_mock():
+    def _criar_usuarios(quantidade=1):
+        usuarios = []
+        for i in range(quantidade):
+            usuarios.append(
+                SimpleNamespace(
+                    nome_usuario=f"Usuario Teste {i}",
+                    email=f"teste{i}@exemplo.com",
+                    data_criacao=datetime(2026, 4, 14, 0, 0, 0)
+                )
+            )
+        return usuarios
+    
+    return _criar_usuarios
 
 
 def test_criar_usuario_valido_retorna_201(mock_db_session, client):
@@ -90,15 +109,49 @@ def test_criar_usuario_dados_invalidos_retorna_422(mock_db_session, client):
     mock_db_session.commit.assert_not_called()
 
 
+def test_listar_usuarios_sem_registros_retorna_200(mock_db_session, client):
+    mock_db_session.query.return_value.all.return_value = []
+
+    response = client.get("/usuarios/listar")
+    response_data = response.json
+
+    assert response.status_code == HTTPStatus.OK
+    assert response_data["status"] == "success"
+    assert response_data["mensagem"] == "Nenhum usuário encontrado."
+    assert response_data["usuarios"] == []
+    assert response_data["quantidade"] == 0
+
+    mock_db_session.query.assert_called_once()
+    mock_db_session.remove.assert_called_once()
+
+
+def test_listar_usuarios_com_registros_retorna_200(mock_db_session, client, gerar_usuarios_mock):
+    usuarios_mock = gerar_usuarios_mock(quantidade=2)
+
+    mock_db_session.query.return_value.all.return_value = usuarios_mock
+
+    response = client.get("/usuarios/listar")
+    response_data = response.json
+
+    assert response.status_code == HTTPStatus.OK
+    assert response_data["status"] == "success"
+    assert response_data["quantidade"] == 2
+    assert response_data["mensagem"] == "2 usuário(s) encontrado(s)."
+
+    assert len(response_data["usuarios"]) == 2
+    assert "senha" not in response_data["usuarios"][0]
+
+    mock_db_session.query.assert_called_once()
+    mock_db_session.remove.assert_called_once()
+
+
 def test_listar_usuarios_retorna_500(mock_db_session, client):
-    mock_db_session.query.side_effect = Exception("Conexão com o banco perdida")
-    # payload = {
-    #     "nome_usuario": "Carlos", 
-    #     "email": "carlos@exemplo.com", 
-    #     "senha": "123"
-    # }
+    mock_db_session.query.side_effect = Exception("Falha na consulta")
     response = client.get("/usuarios/listar")
 
     assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     assert response.json["error_code"] == "INTERNAL_SERVER_ERROR"
+    assert response.json["message"] == "Ocorreu um erro interno ao processar a requisição."
+
+    mock_db_session.query.assert_called_once()
     mock_db_session.remove.assert_called_once()
