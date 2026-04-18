@@ -77,8 +77,10 @@ def listar_usuarios():
         }, HTTPStatus.OK
     
     except Exception as e:
-        return {"status": "error", "mensagem": str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR
-    
+        print(f"Erro interno detectado: {str(e)}")
+        return ErrorSchema(error_code="INTERNAL_SERVER_ERROR",
+                message="Ocorreu um erro interno ao processar a requisição."
+                ).model_dump(), HTTPStatus.INTERNAL_SERVER_ERROR
     finally:
         Session.remove()
 
