@@ -33,7 +33,7 @@ def mock_db_session():
 
 
 @pytest.fixture
-def mock_user_factory():
+def mock_user_generator():
     def _create_users(amount=1):
         users = []
         for i in range(amount):
@@ -50,6 +50,7 @@ def mock_user_factory():
     return _create_users
 
 
+#TODO: add mock_user_generator instead of payload
 def test_criar_usuario_valido_retorna_201(mock_db_session, client):
     payload = {
         "nome_usuario": "João da Silva",
@@ -127,8 +128,8 @@ def test_listar_usuarios_sem_registros_retorna_200(mock_db_session, client):
     mock_db_session.remove.assert_called_once()
 
 
-def test_listar_usuarios_com_registros_retorna_200(mock_db_session, client, mock_user_factory):
-    usuarios_mock = mock_user_factory(amount=2)
+def test_listar_usuarios_com_registros_retorna_200(mock_db_session, client, mock_user_generator):
+    usuarios_mock = mock_user_generator(amount=2)
 
     mock_db_session.query.return_value.all.return_value = usuarios_mock
 
@@ -159,30 +160,31 @@ def test_listar_usuarios_retorna_500(mock_db_session, client):
     mock_db_session.remove.assert_called_once()
 
 
-def test_buscar_usuario_retorna_200(mock_db_session, client, mock_user_factory):
-    usuarios_mock = mock_user_factory(amount=2)
+def test_search_user_by_valid_uuid_returns_200(mock_db_session, client, mock_user_generator):
+    fake_user = mock_user_generator(amount=1)[0]
+    mock_db_session.query.return_value.filter.return_value.first.return_value = fake_user
+    valid_uuid = fake_user.usuario_id
 
-    mock_db_session.query.return_value.all.return_value = usuarios_mock
-
-    response = client.get("/usuarios/listar")
+    response = client.get(f"/usuarios/?id_usuario={valid_uuid}")
     response_data = response.json
 
     assert response.status_code == HTTPStatus.OK
-    assert response_data["status"] == "success"
-    assert response_data["quantidade"] == 2
-    assert response_data["mensagem"] == "2 usuário(s) encontrado(s)."
-
-    assert len(response_data["usuarios"]) == 2
-    assert "senha" not in response_data["usuarios"][0]
-
     mock_db_session.query.assert_called_once()
     mock_db_session.remove.assert_called_once()
 
-def test_buscar_usuario_retorna_500(mock_db_session, client):
-    #raises value error
-    pass
+
+    assert response_data["status"] == "success"    
+    user_data = response_data["dados"]
+    assert user_data["usuario_id"] == valid_uuid
+    assert user_data["nome_usuario"] == fake_user.nome_usuario
+    assert user_data["email"] == fake_user.email
+    assert "data_criacao" in user_data
+
+# def test_buscar_usuario_retorna_500(mock_db_session, client):
+#     #raises value error
+#     pass
 
 
-def test_buscar_usuario_retorna_500(mock_db_session, client):
-    #raises not found
-    pass
+# def test_buscar_usuario_retorna_500(mock_db_session, client):
+#     #raises not found
+#     pass
