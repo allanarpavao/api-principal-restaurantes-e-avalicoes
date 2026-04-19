@@ -31,21 +31,23 @@ def mock_db_session():
         yield mock_session
 
 
+
 @pytest.fixture
-def gerar_usuarios_mock():
-    def _criar_usuarios(quantidade=1):
-        usuarios = []
-        for i in range(quantidade):
-            usuarios.append(
+def mock_user_factory():
+    def _create_users(amount=1):
+        users = []
+        for i in range(amount):
+            users.append(
                 SimpleNamespace(
-                    nome_usuario=f"Usuario Teste {i}",
-                    email=f"teste{i}@exemplo.com",
+                    usuario_id=f"123e4567-e89b-12d3-a456-42661417400{i}",
+                    nome_usuario=f"Test User {i}",
+                    email=f"test{i}@example.com",
                     data_criacao=datetime(2026, 4, 14, 0, 0, 0)
                 )
             )
-        return usuarios
+        return users
     
-    return _criar_usuarios
+    return _create_users
 
 
 def test_criar_usuario_valido_retorna_201(mock_db_session, client):
@@ -125,8 +127,8 @@ def test_listar_usuarios_sem_registros_retorna_200(mock_db_session, client):
     mock_db_session.remove.assert_called_once()
 
 
-def test_listar_usuarios_com_registros_retorna_200(mock_db_session, client, gerar_usuarios_mock):
-    usuarios_mock = gerar_usuarios_mock(quantidade=2)
+def test_listar_usuarios_com_registros_retorna_200(mock_db_session, client, mock_user_factory):
+    usuarios_mock = mock_user_factory(amount=2)
 
     mock_db_session.query.return_value.all.return_value = usuarios_mock
 
@@ -155,3 +157,32 @@ def test_listar_usuarios_retorna_500(mock_db_session, client):
 
     mock_db_session.query.assert_called_once()
     mock_db_session.remove.assert_called_once()
+
+
+def test_buscar_usuario_retorna_200(mock_db_session, client, mock_user_factory):
+    usuarios_mock = mock_user_factory(amount=2)
+
+    mock_db_session.query.return_value.all.return_value = usuarios_mock
+
+    response = client.get("/usuarios/listar")
+    response_data = response.json
+
+    assert response.status_code == HTTPStatus.OK
+    assert response_data["status"] == "success"
+    assert response_data["quantidade"] == 2
+    assert response_data["mensagem"] == "2 usuário(s) encontrado(s)."
+
+    assert len(response_data["usuarios"]) == 2
+    assert "senha" not in response_data["usuarios"][0]
+
+    mock_db_session.query.assert_called_once()
+    mock_db_session.remove.assert_called_once()
+
+def test_buscar_usuario_retorna_500(mock_db_session, client):
+    #raises value error
+    pass
+
+
+def test_buscar_usuario_retorna_500(mock_db_session, client):
+    #raises not found
+    pass
