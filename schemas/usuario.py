@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, UUID4
 from typing import Optional, List
 
 from datetime import datetime
@@ -16,8 +16,10 @@ class UsuarioBuscaSchema(BaseModel):
     """ Define como deve ser a estrutura que representa a busca.
         A busca será feita apenas com base no uuid do usuario.
     """
-    id_usuario: str = "7a743fa4-57b5-4b0b-b97a-5da34a58bf62"
-
+    id_usuario: UUID4 = Field(..., 
+        description="Identificador único do usuário no formato UUID4.",
+        json_schema_extra={"example": "7a743fa4-57b5-4b0b-b97a-5da34a58bf62"}
+    )
 
 class ListagemUsuariosSchema(BaseModel):
     """ Define como uma listagem de produtos será retornada.

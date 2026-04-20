@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from pydantic import ValidationError
 from datetime import datetime
@@ -21,7 +23,7 @@ def client():
 @pytest.fixture
 def mock_db_session():
     def simular_dados_automaticos_db(usuario_obj):
-        usuario_obj.usuario_id = "123e4567-e89b-12d3-a456-426614174000"
+        usuario_obj.usuario_id = str(uuid.uuid4())
         usuario_obj.data_criacao = datetime(2026, 4, 14, 0, 0, 0)
 
         return usuario_obj
@@ -39,7 +41,7 @@ def mock_user_generator():
         for i in range(amount):
             users.append(
                 SimpleNamespace(
-                    usuario_id=f"123e4567-e89b-12d3-a456-42661417400{i}",
+                    usuario_id=str(uuid.uuid4()),
                     nome_usuario=f"Test User {i}",
                     email=f"test{i}@example.com",
                     data_criacao=datetime(2026, 4, 14, 0, 0, 0)

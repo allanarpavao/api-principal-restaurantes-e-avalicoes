@@ -80,23 +80,25 @@ def listar_usuarios():
         }, HTTPStatus.OK
     
     except Exception as e:
-        print(f"Erro interno detectado: {str(e)}")
+        logger.exception(f"Erro interno detectado")
+        # print(f"Erro interno detectado: {str(e)}")
         return ErrorSchema(error_code="INTERNAL_SERVER_ERROR",
                 message="Ocorreu um erro interno ao processar a requisição."
                 ).model_dump(), HTTPStatus.INTERNAL_SERVER_ERROR
     finally:
         Session.remove()
 
+#TODO: change to Path
 @usuarios_bp.get('/', responses={"200": ListagemUsuariosSchema, "404": ErrorSchema})
 def buscar_usuario(query:UsuarioBuscaSchema):
     """Busca e retorna os dados detalhados de um usuário a partir do uuid do usuário
     """
-    try:
-        uuid_usuario = unquote(query.id_usuario)
-        uuid.UUID(uuid_usuario)
+    # try:
+    uuid_usuario = str(query.id_usuario)
+    #     # uuid.UUID(uuid_usuario)
     
-    except ValueError:
-        return {"status": "error", "mensagem": "UUID inválido"}, HTTPStatus.BAD_REQUEST
+    # except ValueError:
+    #     return {"status": "error", "mensagem": "UUID inválido"}, HTTPStatus.BAD_REQUEST
 
     try:
         usuario = Session.query(Usuario).filter(Usuario.usuario_id == uuid_usuario).first()
