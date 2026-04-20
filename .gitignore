@@ -32,4 +32,4 @@ database/
 *.tar.bz2
 
 # logs
-errors.log
+*.log

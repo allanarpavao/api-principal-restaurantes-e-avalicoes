@@ -1,5 +1,6 @@
 from urllib.parse import unquote
 import uuid
+import logging
 from flask_openapi3 import APIBlueprint, Tag
 from http import HTTPStatus
 from sqlalchemy.exc import IntegrityError
@@ -8,6 +9,8 @@ from models import Session
 from models.usuario import Usuario
 from schemas.error import ErrorSchema
 from schemas.usuario import ListagemUsuariosSchema, UsuarioBuscaSchema, UsuarioSchema, UsuarioViewSchema
+
+logger = logging.getLogger(__name__)
 
 usuarios_bp = APIBlueprint(
     'usuarios',
@@ -45,7 +48,7 @@ def criar_usuario(body: UsuarioSchema):
     
     except Exception as e:
         Session.rollback()
-        print(f"Erro interno detectado: {str(e)}")
+        logger.exception(f"Falha inesperada ao tentar criar usuário")
         return ErrorSchema(error_code="INTERNAL_SERVER_ERROR",
                 message="Ocorreu um erro interno ao processar a requisição."
                 ).model_dump(), HTTPStatus.INTERNAL_SERVER_ERROR

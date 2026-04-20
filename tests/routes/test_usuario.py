@@ -10,7 +10,7 @@ from app import app as flask_app
 from schemas.usuario import UsuarioViewSchema
 
 
-##  python -m pytest tests/routes/test_usuario.py -v
+##  python -m pytest -rA tests/routes/test_usuario.py
 
 @pytest.fixture
 def client():
@@ -112,6 +112,7 @@ def test_criar_usuario_dados_invalidos_retorna_422(mock_db_session, client):
     mock_db_session.commit.assert_not_called()
 
 
+### ---------------- get ---------------- ###
 def test_listar_usuarios_sem_registros_retorna_200(mock_db_session, client):
     mock_db_session.query.return_value.all.return_value = []
 
