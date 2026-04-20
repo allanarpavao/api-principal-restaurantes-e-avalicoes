@@ -30,3 +30,6 @@ database/
 *.tar
 *.tar.gz
 *.tar.bz2
+
+# logs
+errors.log
