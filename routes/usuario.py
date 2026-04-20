@@ -93,13 +93,8 @@ def listar_usuarios():
 def buscar_usuario(query:UsuarioBuscaSchema):
     """Busca e retorna os dados detalhados de um usuário a partir do uuid do usuário
     """
-    # try:
     uuid_usuario = str(query.id_usuario)
-    #     # uuid.UUID(uuid_usuario)
     
-    # except ValueError:
-    #     return {"status": "error", "mensagem": "UUID inválido"}, HTTPStatus.BAD_REQUEST
-
     try:
         usuario = Session.query(Usuario).filter(Usuario.usuario_id == uuid_usuario).first()
 
