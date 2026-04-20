@@ -26,22 +26,22 @@ def criar_usuario(body: UsuarioSchema):
 
     Retorna uma representação dos usuários.
     """
-    try:
-        #TODO: model_dump()
-        usuario = Usuario(
-            nome_usuario = body.nome_usuario,
-            email = body.email,
-            senha = body.senha
+    #TODO: model_dump()
+    usuario = Usuario(
+        nome_usuario = body.nome_usuario,
+        email = body.email,
+        senha = body.senha
         )
-
-        Session.add(usuario)
+    Session.add(usuario)
+    
+    try:
         Session.commit()
     
         return UsuarioViewSchema.model_validate(usuario).model_dump(mode='json'), HTTPStatus.CREATED
     
     except IntegrityError:
         Session.rollback()
-
+        logger.warning(f"Tentativa de cadastro com email já existente")
         return ErrorSchema(
             error_code="EMAIL_ALREADY_EXISTS",
             message="Email já existe").model_dump(), HTTPStatus.CONFLICT
