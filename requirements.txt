@@ -21,3 +21,4 @@ SQLAlchemy-Utils==0.42.1
 typing_extensions==4.15.0
 urllib3==2.6.2
 Werkzeug==3.1.4
+email-validator==2.3.0

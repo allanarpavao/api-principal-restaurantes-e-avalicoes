@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field, UUID4
+from pydantic import BaseModel, ConfigDict, Field, UUID4, EmailStr
 from typing import Optional, List
 
 from datetime import datetime
@@ -8,9 +8,8 @@ class UsuarioSchema(BaseModel):
     """Define os campos de um novo usuário a ser inserido
     """
     nome_usuario: str = Field(..., json_schema_extra={"example": "João da Silva"})
-    email: str = Field(..., json_schema_extra={"example": "joao@exemplo.com"})
+    email: EmailStr = Field(..., json_schema_extra={"example": "joao@exemplo.com"})
     senha: str = Field(..., json_schema_extra={"example": "SenhaForte!123"})
-    
 
 class UsuarioBuscaSchema(BaseModel):
     """ Define como deve ser a estrutura que representa a busca.
@@ -26,21 +25,14 @@ class UsuarioResponseSchema(BaseModel):
     """
     model_config = ConfigDict(from_attributes=True)
     nome_usuario: str
-    email: str
+    email: EmailStr
     data_criacao: datetime
     usuario_id: UUID4
-    
-
-# ListagemUsuariosSchema(BaseModel):
-#     """ Define como uma listagem de produtos será retornada.
-#     """
-#     usuarios: List[UsuarioSchema]
-
 
 class UsuarioViewSchema(BaseModel):
     """Define como o usuario será retornado
     """
     model_config = ConfigDict(from_attributes=True)
-    email: str
+    email: EmailStr
     nome_usuario: str
     data_criacao: datetime
