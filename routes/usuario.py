@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from models import Session
 from models.usuario import Usuario
 from schemas.error import ErrorSchema
-from schemas.usuario import ListagemUsuariosSchema, UsuarioBuscaSchema, UsuarioSchema, UsuarioViewSchema
+from schemas.usuario import UsuarioBuscaSchema, UsuarioResponseSchema, UsuarioSchema, UsuarioViewSchema
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ def criar_usuario(body: UsuarioSchema):
         Session.remove()
 
 #TODO: melhorar try/except com ErrorSchema
-@usuarios_bp.get('/listar', responses={"200": ListagemUsuariosSchema, "500": ErrorSchema})
+@usuarios_bp.get('/listar', responses={"200": UsuarioViewSchema, "500": ErrorSchema})
 def listar_usuarios():
     """ Retorna uma lista de todos os usuários cadastrados
     """
@@ -81,7 +81,6 @@ def listar_usuarios():
     
     except Exception as e:
         logger.exception(f"Erro interno detectado")
-        # print(f"Erro interno detectado: {str(e)}")
         return ErrorSchema(error_code="INTERNAL_SERVER_ERROR",
                 message="Ocorreu um erro interno ao processar a requisição."
                 ).model_dump(), HTTPStatus.INTERNAL_SERVER_ERROR
@@ -89,12 +88,12 @@ def listar_usuarios():
         Session.remove()
 
 #TODO: change to Path
-@usuarios_bp.get('/', responses={"200": ListagemUsuariosSchema, "404": ErrorSchema})
+@usuarios_bp.get('/', responses={"200": UsuarioResponseSchema, "404": ErrorSchema})
 def buscar_usuario(query:UsuarioBuscaSchema):
     """Busca e retorna os dados detalhados de um usuário a partir do uuid do usuário
     """
     uuid_usuario = str(query.id_usuario)
-    
+
     try:
         usuario = Session.query(Usuario).filter(Usuario.usuario_id == uuid_usuario).first()
 
@@ -106,13 +105,8 @@ def buscar_usuario(query:UsuarioBuscaSchema):
         else:
             return {
                 "status": "success",
-                "dados": {
-                "nome_usuario": usuario.nome_usuario,
-                "email": usuario.email,
-                "data_criacao": usuario.data_criacao,
-                "usuario_id": usuario.usuario_id
-            }
-        }, HTTPStatus.OK
+                "dados": UsuarioResponseSchema.model_validate(usuario).model_dump(mode='json')
+            }, HTTPStatus.OK
     
     except Exception as e:
         return {"status": "error", "mensagem": str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR
@@ -121,17 +115,17 @@ def buscar_usuario(query:UsuarioBuscaSchema):
         Session.remove()
 
 @usuarios_bp.delete('/',
-            responses={"200": ListagemUsuariosSchema, "404": ErrorSchema})
+            responses={"200": UsuarioResponseSchema, "404": ErrorSchema})
 def deletar_usuario(query:UsuarioBuscaSchema):
     """Remove um usuário do sistema com base no uuid fornecido.
     Retorna uma resposta indicando o sucesso ou a falha da operação.
     """
-    try:
-        uuid_usuario = unquote(query.id_usuario)
-        uuid.UUID(uuid_usuario)
+    # try:
+    uuid_usuario = str(query.id_usuario)        
+    # uuid.UUID(uuid_usuario)
     
-    except ValueError:
-        return {"status": "error", "mensagem": "UUID inválido"}, HTTPStatus.BAD_REQUEST
+    # except ValueError:
+    #     return {"status": "error", "mensagem": "UUID inválido"}, HTTPStatus.BAD_REQUEST
 
 
     try:

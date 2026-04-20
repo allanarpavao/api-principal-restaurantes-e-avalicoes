@@ -21,10 +21,20 @@ class UsuarioBuscaSchema(BaseModel):
         json_schema_extra={"example": "7a743fa4-57b5-4b0b-b97a-5da34a58bf62"}
     )
 
-class ListagemUsuariosSchema(BaseModel):
-    """ Define como uma listagem de produtos será retornada.
+class UsuarioResponseSchema(BaseModel):
+    """ Define a resposta a uma busca direta pelo usuario
     """
-    usuarios: List[UsuarioSchema]
+    model_config = ConfigDict(from_attributes=True)
+    nome_usuario: str
+    email: str
+    data_criacao: datetime
+    usuario_id: UUID4
+    
+
+# ListagemUsuariosSchema(BaseModel):
+#     """ Define como uma listagem de produtos será retornada.
+#     """
+#     usuarios: List[UsuarioSchema]
 
 
 class UsuarioViewSchema(BaseModel):
