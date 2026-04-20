@@ -167,7 +167,7 @@ def test_search_user_by_valid_uuid_returns_200(mock_db_session, client, mock_use
     mock_db_session.query.return_value.filter.return_value.first.return_value = fake_user
     valid_uuid = fake_user.usuario_id
 
-    response = client.get(f"/usuarios/?id_usuario={valid_uuid}")
+    response = client.get(f"/usuarios/{valid_uuid}")
     response_data = response.json
 
     assert response.status_code == HTTPStatus.OK

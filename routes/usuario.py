@@ -87,12 +87,12 @@ def listar_usuarios():
     finally:
         Session.remove()
 
-#TODO: change to Path
-@usuarios_bp.get('/', responses={"200": UsuarioResponseSchema, "404": ErrorSchema})
-def buscar_usuario(query:UsuarioBuscaSchema):
+
+@usuarios_bp.get('/<uuid:id_usuario>', responses={"200": UsuarioResponseSchema, "404": ErrorSchema})
+def buscar_usuario(path:UsuarioBuscaSchema):
     """Busca e retorna os dados detalhados de um usuário a partir do uuid do usuário
     """
-    uuid_usuario = str(query.id_usuario)
+    uuid_usuario = str(path.id_usuario)
 
     try:
         usuario = Session.query(Usuario).filter(Usuario.usuario_id == uuid_usuario).first()
@@ -114,20 +114,15 @@ def buscar_usuario(query:UsuarioBuscaSchema):
     finally:
         Session.remove()
 
-@usuarios_bp.delete('/',
+@usuarios_bp.delete('/<uuid:id_usuario>',
             responses={"200": UsuarioResponseSchema, "404": ErrorSchema})
-def deletar_usuario(query:UsuarioBuscaSchema):
+def deletar_usuario(path:UsuarioBuscaSchema):
     """Remove um usuário do sistema com base no uuid fornecido.
     Retorna uma resposta indicando o sucesso ou a falha da operação.
     """
-    # try:
-    uuid_usuario = str(query.id_usuario)        
-    # uuid.UUID(uuid_usuario)
-    
-    # except ValueError:
-    #     return {"status": "error", "mensagem": "UUID inválido"}, HTTPStatus.BAD_REQUEST
 
-
+    uuid_usuario = str(path.id_usuario)        
+   
     try:
         usuario = Session.query(Usuario).filter(Usuario.usuario_id == uuid_usuario).first()
         
