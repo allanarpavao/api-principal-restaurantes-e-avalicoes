@@ -1,4 +1,5 @@
 import uuid
+import logging
 import pytest
 from pydantic import ValidationError
 from datetime import datetime
@@ -10,8 +11,10 @@ from sqlalchemy.exc import IntegrityError
 from app import app as flask_app
 from schemas.usuario import UsuarioViewSchema
 
-
 ##  python -m pytest -rA tests/routes/test_usuario.py
+
+logger = logging.getLogger(__name__)
+
 
 @pytest.fixture
 def client():
@@ -174,13 +177,44 @@ def test_search_user_by_valid_uuid_returns_200(mock_db_session, client, mock_use
     mock_db_session.query.assert_called_once()
     mock_db_session.remove.assert_called_once()
 
-
-    assert response_data["status"] == "success"    
     user_data = response_data["dados"]
+    
+    assert response_data["status"] == "success"    
     assert user_data["usuario_id"] == valid_uuid
     assert user_data["nome_usuario"] == fake_user.nome_usuario
     assert user_data["email"] == fake_user.email
     assert "data_criacao" in user_data
+
+
+def test_search_user_not_found_returns_404(mock_db_session, client):
+    mock_db_session.query.return_value.filter.return_value.first.return_value = None
+    random_uuid = str(uuid.uuid4())
+
+    response = client.get(f"/usuarios/{random_uuid}")
+    
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    mock_db_session.query.assert_called_once()
+    mock_db_session.remove.assert_called_once()
+
+
+# def test_search_user_exception_returns_500(mock_db_session, client):
+#     # Arrange: Force the database query to raise an exception
+#     error_message = "Database connection lost"
+#     mock_db_session.query.side_effect = Exception(error_message)
+#     valid_uuid = "123e4567-e89b-12d3-a456-426614174000"
+
+#     # Act: Perform the GET request
+#     response = client.get(f"/usuarios/{valid_uuid}")
+#     response_data = response.json
+
+#     # Assert: Verify that the API catches the error and returns a 500 status
+#     assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+#     mock_db_session.query.assert_called_once()
+#     mock_db_session.remove.assert_called_once()  # Ensures finally block executes
+
+#     assert response_data["status"] == "error"
+#     assert response_data["mensagem"] == error_message
+
 
 # def test_buscar_usuario_retorna_500(mock_db_session, client):
 #     #raises value error
