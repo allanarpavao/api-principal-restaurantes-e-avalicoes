@@ -24,14 +24,14 @@ def client():
 
 @pytest.fixture
 def mock_db_session():
-    def simular_dados_automaticos_db(usuario_obj):
-        usuario_obj.usuario_id = str(uuid.uuid4())
-        usuario_obj.data_criacao = datetime(2026, 4, 14, 0, 0, 0)
+    def fake_automatic_data_db(user):
+        user.usuario_id = str(uuid.uuid4())
+        user.data_criacao = datetime(2026, 4, 14, 0, 0, 0)
 
-        return usuario_obj
+        return user
     
     with patch("routes.usuario.Session") as mock_session:
-        mock_session.add.side_effect = simular_dados_automaticos_db
+        mock_session.add.side_effect = fake_automatic_data_db
         yield mock_session
 
 
@@ -54,14 +54,12 @@ def mock_user_generator():
     return _create_users
 
 
-#TODO: add mock_user_generator instead of payload
-def test_criar_usuario_valido_retorna_201(mock_db_session, client):
+def test_create_valid_user_returns_201(mock_db_session, client):
     payload = {
         "nome_usuario": "João da Silva",
         "email": "joao@exemplo.com",
         "senha": "senhaSegura123"
     }
-
     response = client.post("/usuarios/criar", json=payload)
     response_data = response.json
     
@@ -73,25 +71,26 @@ def test_criar_usuario_valido_retorna_201(mock_db_session, client):
     assert response_data["email"] == payload["email"]
     assert "senha" not in response_data
 
-    try:
-        UsuarioViewSchema.model_validate(response_data)
-    except ValidationError as e:
-        print(e.json(indent=2))
-        pytest.fail(f"O payload de resposta não respeita o UsuarioViewSchema: {e}")
-
+    UsuarioViewSchema.model_validate(response_data)
+ 
   
-def test_criar_usuario_com_email_duplicado_retorna_409(mock_db_session, client):
-    mock_db_session.commit.side_effect = IntegrityError("Erro", "Detalhe", "Origem")
+def test_create_user_duplicate_email_returns_409(mock_db_session, client):
+    mock_orig_exception = Exception("duplicate key value violates unique constraint")
+    mock_db_session.commit.side_effect = IntegrityError(None, None, mock_orig_exception)
     
-    payload = {"nome_usuario": "Maria", "email": "maria@exemplo.com", "senha": "123"}
+    payload = {
+        "nome_usuario": "Maria",
+        "email": "maria@exemplo.com",
+        "senha": "123"
+        }
     response = client.post("/usuarios/criar", json=payload)
 
     assert response.status_code == HTTPStatus.CONFLICT
     mock_db_session.rollback.assert_called_once()
     assert response.json["error_code"] == "EMAIL_ALREADY_EXISTS"
 
-def test_criar_usuario_retorna_500(mock_db_session, client):
-    mock_db_session.commit.side_effect = Exception("Conexão com o banco perdida")
+def test_create_user_returns_500(mock_db_session, client):
+    mock_db_session.commit.side_effect = Exception("Database connection lost")
     payload = {
         "nome_usuario": "Carlos", 
         "email": "carlos@exemplo.com", 
@@ -104,8 +103,7 @@ def test_criar_usuario_retorna_500(mock_db_session, client):
     mock_db_session.rollback.assert_called_once()
     mock_db_session.remove.assert_called_once()
 
-def test_criar_usuario_dados_invalidos_retorna_422(mock_db_session, client):
-
+def test_create_user_invalid_data_returns_422(mock_db_session, client):
     payload = {
         "nome_usuario": "Maria"
     }
@@ -117,7 +115,7 @@ def test_criar_usuario_dados_invalidos_retorna_422(mock_db_session, client):
 
 
 ### ---------------- get ---------------- ###
-def test_listar_usuarios_sem_registros_retorna_200(mock_db_session, client):
+def test_list_users_no_records_returns_200(mock_db_session, client):
     mock_db_session.query.return_value.all.return_value = []
 
     response = client.get("/usuarios/listar")
@@ -133,14 +131,14 @@ def test_listar_usuarios_sem_registros_retorna_200(mock_db_session, client):
     mock_db_session.remove.assert_called_once()
 
 
-def test_listar_usuarios_com_registros_retorna_200(mock_db_session, client, mock_user_generator):
+def test_list_users_returns_200(mock_db_session, client, mock_user_generator):
     usuarios_mock = mock_user_generator(amount=2)
 
     mock_db_session.query.return_value.all.return_value = usuarios_mock
 
     response = client.get("/usuarios/listar")
     response_data = response.json
-
+    
     assert response.status_code == HTTPStatus.OK
     assert response_data["status"] == "success"
     assert response_data["quantidade"] == 2
@@ -153,8 +151,8 @@ def test_listar_usuarios_com_registros_retorna_200(mock_db_session, client, mock
     mock_db_session.remove.assert_called_once()
 
 
-def test_listar_usuarios_retorna_500(mock_db_session, client):
-    mock_db_session.query.side_effect = Exception("Falha na consulta")
+def test_list_users_returns_500(mock_db_session, client):
+    mock_db_session.query.side_effect = Exception("Query failure")
     response = client.get("/usuarios/listar")
 
     assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
@@ -211,13 +209,3 @@ def test_search_user_exception_returns_500(mock_db_session, client):
 
     assert response_data["status"] == "error"
     assert response_data["mensagem"] == error_message
-
-
-# def test_buscar_usuario_retorna_500(mock_db_session, client):
-#     #raises value error
-#     pass
-
-
-# def test_buscar_usuario_retorna_500(mock_db_session, client):
-#     #raises not found
-#     pass
