@@ -197,23 +197,20 @@ def test_search_user_not_found_returns_404(mock_db_session, client):
     mock_db_session.remove.assert_called_once()
 
 
-# def test_search_user_exception_returns_500(mock_db_session, client):
-#     # Arrange: Force the database query to raise an exception
-#     error_message = "Database connection lost"
-#     mock_db_session.query.side_effect = Exception(error_message)
-#     valid_uuid = "123e4567-e89b-12d3-a456-426614174000"
+def test_search_user_exception_returns_500(mock_db_session, client):
+    error_message = "Database connection lost"
+    mock_db_session.query.side_effect = Exception(error_message)
+    valid_uuid = str(uuid.uuid4())
 
-#     # Act: Perform the GET request
-#     response = client.get(f"/usuarios/{valid_uuid}")
-#     response_data = response.json
+    response = client.get(f"/usuarios/{valid_uuid}")
+    response_data = response.json
 
-#     # Assert: Verify that the API catches the error and returns a 500 status
-#     assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-#     mock_db_session.query.assert_called_once()
-#     mock_db_session.remove.assert_called_once()  # Ensures finally block executes
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    mock_db_session.query.assert_called_once()
+    mock_db_session.remove.assert_called_once()
 
-#     assert response_data["status"] == "error"
-#     assert response_data["mensagem"] == error_message
+    assert response_data["status"] == "error"
+    assert response_data["mensagem"] == error_message
 
 
 # def test_buscar_usuario_retorna_500(mock_db_session, client):
