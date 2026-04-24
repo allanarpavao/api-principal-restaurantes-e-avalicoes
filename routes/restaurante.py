@@ -119,10 +119,11 @@ def criar_restaurante(body: RestauranteSchema):
 
         return RestauranteViewSchema.model_validate(restaurante).model_dump(), HTTPStatus.CREATED
     
+    #TODO: verificar mensagem de erro especifica
     except IntegrityError:
         Session.rollback()
 
-        return {"erro": "Email já existe"}, HTTPStatus.CONFLICT
+        return {"erro": "Nome já existe"}, HTTPStatus.CONFLICT
     
     except Exception as e:
         Session.rollback()
