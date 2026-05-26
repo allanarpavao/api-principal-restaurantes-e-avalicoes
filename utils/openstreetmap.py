@@ -23,7 +23,7 @@ class OpenStreetMapService:
                     "raio_km": raio_km,
                     "tipo": tipo
                 },
-                # timeout=TIMEOUT
+                timeout=TIMEOUT
             )
             
             if response.status_code == HTTPStatus.OK:
@@ -40,7 +40,7 @@ class OpenStreetMapService:
             response = requests.post(
                 f"{BASE_URL}/contexto/restaurantes/endereco",
                 json={"latitude": latitude, "longitude": longitude},
-                # timeout=TIMEOUT
+                timeout=TIMEOUT
             )
             return response.json() if response.status_code == HTTPStatus.OK else {"sucesso": False}
         except Exception as e:
@@ -57,7 +57,7 @@ class OpenStreetMapService:
                     "lat_destino": lat2,
                     "lng_destino": lng2
                 },
-                # timeout=TIMEOUT
+                timeout=TIMEOUT
             )
             return response.json() if response.status_code == HTTPStatus.OK else {"sucesso": False}
         except Exception as e:
