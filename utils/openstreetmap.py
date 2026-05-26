@@ -1,7 +1,12 @@
 from http import HTTPStatus
 import requests
+import os
 
-BASE_URL = "http://127.0.0.1:8001"
+
+BASE_URL = os.getenv("SECONDARY_API_BASE_URL", "http://127.0.0.1:8001")
+TIMEOUT = int(os.getenv("SECONDARY_API_TIMEOUT", "30"))
+
+# BASE_URL = "http://127.0.0.1:8001"
 # TIMEOUT = 30
 
 class OpenStreetMapService:
