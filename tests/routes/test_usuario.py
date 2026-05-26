@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from schemas.usuario import UsuarioViewSchema
 
 ##  python -m pytest -rA tests/routes/test_usuario.py
+##  python -m pytest -rA
 
 logger = logging.getLogger(__name__)
 
